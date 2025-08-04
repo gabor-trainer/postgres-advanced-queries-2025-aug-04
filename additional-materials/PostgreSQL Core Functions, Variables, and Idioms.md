@@ -1,4 +1,4 @@
-## **PostgreSQL Core Functions, Variables, and Idioms: A Professional Guide**
+## **PostgreSQL Core Functions, Variables, and Idioms**
 
 ### **Introduction**
 

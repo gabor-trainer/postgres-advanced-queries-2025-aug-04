@@ -30,7 +30,9 @@ The `employees` table in the Northwind database is structured hierarchically usi
 **Description:**
 First, let's try to solve this problem using only non-recursive SQL. Write a query that lists each manager's name and a comma-separated list of their *direct* subordinates. This involves a self-join on the `employees` table. Observe that this approach cannot capture indirect (sub-level) reports.
 
-**SQL Query:**```sql
+**SQL Query:**
+
+```sql
 -- List each employee and their direct reports
 SELECT
     M.first_name || ' ' || M.last_name AS manager_name,

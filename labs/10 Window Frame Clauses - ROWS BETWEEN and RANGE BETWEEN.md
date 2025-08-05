@@ -103,7 +103,7 @@ This task visually demonstrates how `ROWS BETWEEN` strictly counts physical rows
 These tasks demonstrate practical applications of `ROWS BETWEEN` where the window frame is defined by a count of physical rows.
 
 1.  **Task 3.1: 3-Order Moving Average of Order Freight per Customer:** For each customer, calculate the average `freight` cost of the current order and the two *physically preceding* orders, based on `order_id`. This creates a moving average based on a fixed count of past transactions.
-2.  **Task 3.2: Count of Products Ordered in the Next 5 Sales Details:** For each `order_detail` line item, count the distinct `product_id`s in the current line and the *next five physically appearing* line items within the same `order_id`, ordered by `product_id`.
+2.  **Task 3.2: Count of Products Ordered in the Next 5 Sales Details:** For each `order_detail` line item, count `product_id`s in the current line and the *next five physically appearing* line items within the same `order_id`, ordered by `product_id`.
 
 **SQL Query:**
 ```sql
@@ -128,7 +128,7 @@ SELECT
     order_id,
     product_id,
     quantity,
-    COUNT(DISTINCT product_id) OVER (
+    COUNT(product_id) OVER (
         PARTITION BY order_id
         ORDER BY product_id
         ROWS BETWEEN CURRENT ROW AND 5 FOLLOWING

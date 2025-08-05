@@ -61,8 +61,7 @@ The `MERGE` statement requires a unique constraint or primary key on the target 
 **Description:**
 Next, simulate the arrival of a daily sales file. Create a temporary staging table, `daily_sales_log`, and populate it with aggregated sales data from the `orders` and `order_details` tables for a specific day, '1996-07-08'.
 
-**SQL Query:**
-```sql
+**SQL Query:**```sql
 -- Create a temporary staging table for one day's sales data
 CREATE TEMP TABLE daily_sales_log (
     sales_date      DATE,
@@ -134,12 +133,12 @@ BEGIN;
 -- First, run the MERGE from Task 3 to have some initial data
 MERGE INTO monthly_product_sales M USING daily_sales_log S ON M.product_id = S.product_id AND M.sales_month = DATE_TRUNC('month', S.sales_date) WHEN NOT MATCHED THEN INSERT (sales_month, product_id, total_quantity_sold, total_revenue) VALUES (DATE_TRUNC('month', S.sales_date), S.product_id, S.quantity_sold, S.day_revenue);
 
--- Clear the daily log and load the next day's data
+-- Clear the daily log and load the next day's data with explicit casting
 TRUNCATE daily_sales_log;
 INSERT INTO daily_sales_log (sales_date, product_id, quantity_sold, day_revenue)
-SELECT '1996-07-09', 41, 9, 87.75  -- Product 41 was sold yesterday
+SELECT '1996-07-09'::DATE, 41, 9, 87.75  -- CORRECTED: Explicit cast to DATE
 UNION ALL
-SELECT '1996-07-09', 20, 10, 810; -- Product 20 is new for this month
+SELECT '1996-07-09'::DATE, 20, 10, 810; -- CORRECTED: Explicit cast to DATE
 
 -- Now, perform the MERGE again with the new daily data
 MERGE INTO monthly_product_sales M
@@ -175,13 +174,13 @@ A data correction file arrives. It turns out all 10 units of Product 20 that wer
 **SQL Query:**
 ```sql
 BEGIN;
--- Perform the setup and MERGE from Task 4 to get a full data set
+-- Perform the setup and MERGE from Task 4 to get a full data set (this uses the corrected cast)
 MERGE INTO monthly_product_sales M USING (SELECT o.order_date, od.product_id, SUM(od.quantity) AS quantity_sold, SUM(od.unit_price * od.quantity * (1 - od.discount)) AS day_revenue FROM orders o JOIN order_details od ON o.order_id = od.order_id WHERE o.order_date = '1996-07-08' GROUP BY o.order_date, od.product_id) S ON M.product_id = S.product_id AND M.sales_month = DATE_TRUNC('month', S.sales_date) WHEN NOT MATCHED THEN INSERT VALUES (DATE_TRUNC('month', S.sales_date), S.product_id, S.quantity_sold, S.day_revenue);
-MERGE INTO monthly_product_sales M USING (SELECT '1996-07-09'::date AS sales_date, 41 AS product_id, 9 AS quantity_sold, 87.75 AS day_revenue UNION ALL SELECT '1996-07-09'::date, 20, 10, 810) S ON M.product_id = S.product_id AND M.sales_month = DATE_TRUNC('month', S.sales_date) WHEN MATCHED THEN UPDATE SET total_quantity_sold = M.total_quantity_sold + S.quantity_sold, total_revenue = M.total_revenue + S.day_revenue WHEN NOT MATCHED THEN INSERT VALUES (DATE_TRUNC('month', S.sales_date), S.product_id, S.quantity_sold, S.day_revenue);
+MERGE INTO monthly_product_sales M USING (SELECT '1996-07-09'::DATE AS sales_date, 41 AS product_id, 9 AS quantity_sold, 87.75 AS day_revenue UNION ALL SELECT '1996-07-09'::DATE, 20, 10, 810) S ON M.product_id = S.product_id AND M.sales_month = DATE_TRUNC('month', S.sales_date) WHEN MATCHED THEN UPDATE SET total_quantity_sold = M.total_quantity_sold + S.quantity_sold, total_revenue = M.total_revenue + S.day_revenue WHEN NOT MATCHED THEN INSERT VALUES (DATE_TRUNC('month', S.sales_date), S.product_id, S.quantity_sold, S.day_revenue);
 
 -- Simulate the data correction file for the returns
 TRUNCATE daily_sales_log;
-INSERT INTO daily_sales_log VALUES ('1996-07-10', 20, -10, -810.00);
+INSERT INTO daily_sales_log VALUES ('1996-07-10'::DATE, 20, -10, -810.00); -- CORRECTED: Explicit cast to DATE
 
 -- MERGE with a conditional DELETE
 MERGE INTO monthly_product_sales M

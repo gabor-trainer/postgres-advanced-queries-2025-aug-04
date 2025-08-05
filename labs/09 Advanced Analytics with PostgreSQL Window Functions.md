@@ -109,13 +109,15 @@ ORDER BY
 -- Task 2.2: Daily Average Order Value
 WITH OrderRevenue AS (
     SELECT
-        order_id,
-        order_date,
-        SUM(unit_price * quantity * (1 - discount))::NUMERIC(10, 2) AS order_revenue
+        od.order_id,
+        o.order_date, -- Corrected: order_date is from the 'orders' table
+        SUM(od.unit_price * od.quantity * (1 - od.discount))::NUMERIC(10, 2) AS order_revenue
     FROM
-        order_details
+        order_details AS od
+    JOIN
+        orders AS o ON od.order_id = o.order_id -- Corrected: Join to 'orders' table
     GROUP BY
-        order_id, order_date
+        od.order_id, o.order_date
 )
 SELECT
     orv.order_id,
